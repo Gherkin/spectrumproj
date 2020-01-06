@@ -18,15 +18,19 @@ void setup() {
   // ADEN ADSC ADATE ADIF ADIE ADPS ADPS ADPS
   // ADC enable, ADC start conversion, ADC Auto Trigger, ADC Interrupt, ADC Interrupt Enable, ADC Prescaler
   ADCSRA = B11101101;
+  
   // RESERV ACME RESERV RESERV RESERV ADTS
   // Analog Comparator Multiplexer Enable, ADC Auto Trigger Source
-  ADCSRB = B00000000;
+  ADCSRB = B00000000; //Turn off ACME, set ADTS to Freerunning
+  
   // REFS REFS ADLAR RESERV MUX
   // Voltage Reference Selection, ADC Left Adjust Result, Analog Channel Select
   ADMUX =  B01000000;
+  
   //RESRV RESERV ADCND 5..0
   // ADC Pin N Digital Input Disable
   DIDR0 =  B00000001;
+  
   //What are the implications of this
   TIMSK0 = 0;
   
@@ -58,10 +62,9 @@ ISR(ADC_vect) {
 
 void loop() {
   if(num >= SAMPLES) {
-    noInterrupts();
-    Serial.println("hej");
+    ADCSRA &= ~(1 << ADIE) //turn off ADC Interrupt so samples isnt overwritten
     do_fft();
     num = 0;
-    interrupts();
+    ADCSRA |= (1 << ADIE)
   }
 }
