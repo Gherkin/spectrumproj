@@ -2,7 +2,8 @@
  
 #define SAMPLES 128             //Must be a power of 2
 #define SAMPLING_FREQUENCY 20000
- 
+
+#define FILTER_STATES 8
 arduinoFFT FFT = arduinoFFT();
  
 volatile double vReal[SAMPLES];
@@ -10,6 +11,11 @@ volatile double vImag[SAMPLES];
 
 volatile int num = 0;
 
+byte setting = 0;
+unsigned int start_bin = 0;
+unsigned int end_bin = 0;
+
+byte filter_pins[FILTER_STATES];
 void setup() {
   Serial.begin(115200);
 
@@ -32,7 +38,7 @@ void setup() {
   DIDR0 =  B00000001;
   
   //What are the implications of this
-  TIMSK0 = 0;
+  TIMSK0 = 1;
   
   //The First ADC Conversion takes 25 cycles instead of 13, do we need to care
   interrupts();
@@ -60,11 +66,52 @@ ISR(ADC_vect) {
   vImag[num++] = 0;
 }
 
+byte get_setting() {
+  return 0;
+}
+
+void set_filter(byte setting) {
+  for(int i = 0; i < FILTER_STATES; i++) {
+    digitalWrite(filter_pins[FILTER_STATES], (setting & (1 << i)) >> i);
+  }
+}
+
+void check_setting() {
+  byte new_setting = get_setting();
+  
+  if(setting == new_setting) {
+    return;
+  }
+  noInterrupts();
+  setting = new_setting;
+  switch(setting) {
+    case 1:
+      break;
+    case 2:
+      break;
+    case 4:
+      break;
+    case 8:
+      break;
+    case 16:
+      break;
+    case 32:
+      break;
+    case 64:
+      break;
+    case 128:
+      break;
+  }
+  set_filter(setting);
+  num = 0;
+  delay(50);
+  
+}
 void loop() {
   if(num >= SAMPLES) {
-    ADCSRA &= ~(1 << ADIE) //turn off ADC Interrupt so samples isnt overwritten
+    ADCSRA &= ~(1 << ADIE); //turn off ADC Interrupt so samples isnt overwritten
     do_fft();
     num = 0;
-    ADCSRA |= (1 << ADIE)
+    ADCSRA |= (1 << ADIE);
   }
 }
