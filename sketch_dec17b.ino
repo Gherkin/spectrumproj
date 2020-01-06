@@ -62,9 +62,9 @@ ISR(ADC_vect) {
 
 void loop() {
   if(num >= SAMPLES) {
-    ADCSRA &= ~(1 << ADIE) //turn off ADC Interrupt so samples isnt overwritten
+    ADCSRA &= ~(1 << ADIE); //turn off ADC Interrupt so samples isnt overwritten
     do_fft();
     num = 0;
-    ADCSRA |= (1 << ADIE)
+    ADCSRA |= (1 << ADIE);
   }
 }
