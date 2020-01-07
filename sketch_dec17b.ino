@@ -3,7 +3,6 @@
 #define SAMPLES 128             //Must be a power of 2
 #define SAMPLING_FREQUENCY 20000
 
-#define FILTER_STATES 8
 arduinoFFT FFT = arduinoFFT();
  
 volatile double vReal[SAMPLES];
@@ -15,7 +14,8 @@ byte setting = 0;
 unsigned int start_bin = 0;
 unsigned int end_bin = 0;
 
-byte filter_pins[FILTER_STATES];
+byte filter_pins[] = {};
+byte input_pins[] = {};
 void setup() {
   Serial.begin(115200);
 
@@ -67,12 +67,16 @@ ISR(ADC_vect) {
 }
 
 byte get_setting() {
-  return 0;
+  byte out = 0;
+  for(int i = 0; i < sizeof(input_pins); i++) {
+    setting |= (digitalRead(input_pins[i]) << i);
+  }
+  return out;
 }
 
 void set_filter(byte setting) {
-  for(int i = 0; i < FILTER_STATES; i++) {
-    digitalWrite(filter_pins[FILTER_STATES], (setting & (1 << i)) >> i);
+  for(int i = 0; i < sizeof(filter_pins); i++) {
+    digitalWrite(filter_pins[i], (setting & (1 << i)) >> i);
   }
 }
 
@@ -82,6 +86,7 @@ void check_setting() {
   if(setting == new_setting) {
     return;
   }
+
   noInterrupts();
   setting = new_setting;
   switch(setting) {
