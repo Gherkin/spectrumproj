@@ -31,7 +31,7 @@ void setup() {
   
   // REFS REFS ADLAR RESERV MUX
   // Voltage Reference Selection, ADC Left Adjust Result, Analog Channel Select
-  ADMUX =  B01000000;
+  ADMUX =  B01100000;
   
   //RESRV RESERV ADCND 5..0
   // ADC Pin N Digital Input Disable
@@ -60,9 +60,7 @@ void do_fft() {
 
 ISR(ADC_vect) {
   //we only need 8-bit resolution (p247) so we skip ADCL. ADLAR NEEDS TO BE 1
-  byte l = ADCL;
-  byte h = ADCH;
-  vReal[num] = (h << 8) | l;
+  vReal[num] = ADCH;
   vImag[num++] = 0;
 }
 
