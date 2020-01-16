@@ -1,7 +1,15 @@
 #include "arduinoFFT.h"
- 
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
 #define SAMPLES 128             //Must be a power of 2
 #define SAMPLING_FREQUENCY 20000
+
+#define SCREEN_WIDTH 96 // OLED display width, in pixels
+#define SCREEN_HEIGHT 16 // OLED display height, in pixels
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
  
 arduinoFFT FFT = arduinoFFT();
  
@@ -12,6 +20,14 @@ volatile int num = 0;
 
 void setup() {
   Serial.begin(115200);
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;);
+  }
+  delay(2000);
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+
 
 
   
@@ -58,11 +74,37 @@ ISR(ADC_vect) {
   vImag[num++] = 0;
 }
 
+double find_max() {
+  double out = 0;
+  for(int i = 0; i < SAMPLES; i++) {
+    if(vReal[i] > out) {
+      out = vReal[i];
+    }
+  }
+  return out;
+}
+
+void output() {
+  display.clearDisplay();
+  double m = find_max();
+  int p = m / SCREEN_HEIGHT;
+  for(int i = 0; i < SCREEN_WIDTH; i++) {
+    for(int n = 0; n < SCREEN_HEIGHT; n++) {
+      if(vReal[i] > p * n) {
+        display.drawPixel(i, n, WHITE);
+      }
+    }
+  }
+  display.display();
+}
+
 void loop() {
   if(num >= SAMPLES) {
     ADCSRA &= ~(1 << ADIE); //turn off ADC Interrupt so samples isnt overwritten
     do_fft();
     num = 0;
+    output();
     ADCSRA |= (1 << ADIE);
   }
+  
 }
